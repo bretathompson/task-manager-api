@@ -53,13 +53,13 @@ const userSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true
-})
+});
 
 userSchema.virtual('tasks', {
     ref: 'Task',
     localField: '_id',
     foreignField: 'owner'
-})
+});
 
 userSchema.methods.toJSON = function () {
     const user = this
@@ -74,7 +74,7 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this
-    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET)
+    const token = jwt.sign({ _id: user._id.toString() }, "xyz")
 
     user.tokens = user.tokens.concat({ token })
     await user.save()
@@ -106,15 +106,15 @@ userSchema.pre('save', async function (next) {
         user.password = await bcrypt.hash(user.password, 8)
     }
 
-    next()
-})
+    next();
+});
 
 // delete user tasks when user is remvoed
 userSchema.pre('remove', async function (next) {
     const user = this
     await Task.deleteMany({ owner: user._id })
-    next()
-})
+    next();
+});
 
 const User = mongoose.model('User', userSchema)
 

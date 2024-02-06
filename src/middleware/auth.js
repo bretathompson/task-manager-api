@@ -1,25 +1,38 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
+const ObjectId = require("mongodb").ObjectId
 
 const auth = async (req, res, next) => {
     try {
-        const token = req.header('Authorization').replace('Bearer ', '')
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        const user = await User.findOne({ _id: decoded._id, 'tokens.token': token })
+        const token = req.header('Authorization');
+        
+        console.log(token);
 
-        if (!user) {
-            throw new Error()
+        if (!token || !token.startsWith('Bearer ')) {
+            return res.status(401).send({ error: 'Invalid token format' });
         }
+        const decoded = jwt.verify(token.replace('Bearer ', ''), 'xyz');
 
-        req.token = token
-        req.user = user
-        next()
+        console.log(decoded._id);
+        const id = ObjectId(decoded._id);
+        const user = await User.findOne({ _id: id });
+        console.log(user);
+        
+        if (!user) {
+            throw new Error();
+        }
+    
+        req.token = token;
+        req.user = user;
+        next();
     } catch (e) {
-        res.status(401).send({ error: 'Please authenticate' })
+
+        console.log(e);
+
+        res.status(401).send({ error: 'Please authenticate' });
     }
-}
+    };
 
 module.exports = auth
-
 
 
