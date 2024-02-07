@@ -2,6 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const sharp = require('sharp')
 const User = require('../models/user')
+const Task = require('../models/task')
 const auth = require('../middleware/auth')
 const { sendWelcomeEmail, sendCancelationEmail } = require('../emails/account')
 const router = new express.Router()
@@ -12,14 +13,15 @@ router.post('/users', async (req, res) => {
 
     try {
         await user.save()
-
-        console.log(user);
+        // console.log(user);
 
         sendWelcomeEmail(user.email, user.name)
         const token = await user.generateAuthToken()
         res.status(201).send({ user, token })
     } catch (e) {
-        res.status(400).send(e)
+        console.log('thingsofthings');
+
+        res.status(400).send({ error: 'User already Exists' });
     }
 });
 
@@ -56,6 +58,20 @@ router.post('/users/logoutAll', auth, async (req, res) => {
         res.send()
     } catch (e) {
         res.status(500).send()
+    }
+});
+
+router.post('/tasks', auth, async (req, res) => {
+    const task = new Task({
+        ...req.body,
+        owner: req.user._id
+    });
+
+    try {
+        await task.save();
+        res.status(201).send(task);
+    } catch (e) {
+        res.status(400).send(e);
     }
 });
 
